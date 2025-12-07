@@ -40,7 +40,7 @@
 
                 <div class="header-right">
                     <div class="mode-toggle">
-                        <button class="mode-btn active" data-mode="autoplay" onclick="setAnimationMode('autoplay')">
+                        <button class="mode-btn active" data-mode="autoplay">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path
                                     d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
@@ -49,7 +49,7 @@
                             </svg>
                             Autoplay
                         </button>
-                        <button class="mode-btn" data-mode="step" onclick="setAnimationMode('step')">
+                        <button class="mode-btn" data-mode="step">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path
                                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
@@ -58,7 +58,7 @@
                             Step
                         </button>
                     </div>
-                    <button class="btn-icon" onclick="regenerateAll()" title="Nové příklady">
+                    <button class="btn-icon" id="regenerate-btn" title="Nové příklady">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
@@ -72,23 +72,23 @@
 
         <!-- Navigation Tabs -->
         <nav class="nav-tabs screen-only">
-            <button class="tab-btn active" data-tab="cv1" onclick="switchTab('cv1')">
+            <button class="tab-btn active" data-tab="cv1">
                 <span class="tab-number">1</span>
                 <span class="tab-label">Hodnoty výrazů</span>
             </button>
-            <button class="tab-btn" data-tab="cv2" onclick="switchTab('cv2')">
+            <button class="tab-btn" data-tab="cv2">
                 <span class="tab-number">2</span>
                 <span class="tab-label">Podmínky</span>
             </button>
-            <button class="tab-btn" data-tab="cv3" onclick="switchTab('cv3')">
+            <button class="tab-btn" data-tab="cv3">
                 <span class="tab-number">3</span>
                 <span class="tab-label">Mnohočleny</span>
             </button>
-            <button class="tab-btn" data-tab="cv4" onclick="switchTab('cv4')">
+            <button class="tab-btn" data-tab="cv4">
                 <span class="tab-number">4</span>
                 <span class="tab-label">Zjednodušování</span>
             </button>
-            <button class="tab-btn" data-tab="cv5" onclick="switchTab('cv5')">
+            <button class="tab-btn" data-tab="cv5">
                 <span class="tab-number">5</span>
                 <span class="tab-label">Vytýkání</span>
             </button>

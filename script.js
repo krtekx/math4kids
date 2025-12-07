@@ -1312,12 +1312,6 @@ function renderContent(tabId) {
     const container = document.getElementById(`content-${tabId}`);
 
     container.innerHTML = data.map(item => createQuestionCard(item, tabId)).join('');
-
-    // Add click listeners for the card itself (expanding/animation)
-    // IMPORTANT: specific clicks on inputs/buttons shouldn't trigger card expansion
-    container.querySelectorAll('.question-card').forEach((card, index) => {
-        card.addEventListener('click', (e) => handleCardClick(tabId, index, e));
-    });
 }
 
 function createQuestionCard(item, tabId) {
@@ -1325,13 +1319,13 @@ function createQuestionCard(item, tabId) {
     const isExpanded = expandedCards.has(cardId);
 
     return `
-        <div class="question-card ${isExpanded ? 'expanded' : ''}" data-card-id="${cardId}">
-            <div class="card-controls" onclick="event.stopPropagation()">
-                <button class="mini-mode-btn ${animationState.mode === 'autoplay' ? 'active' : ''}" data-mode="autoplay" onclick="setAnimationMode('autoplay')">
+        <div class="question-card ${isExpanded ? 'expanded' : ''}" data-card-id="${cardId}" data-tab="${tabId}" data-index="${item.id - 1}">
+            <div class="card-controls">
+                <button class="mini-mode-btn js-mini-mode-btn ${animationState.mode === 'autoplay' ? 'active' : ''}" data-mode="autoplay">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><path d="M5 3l14 9-14 9V3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Auto
                 </button>
-                <button class="mini-mode-btn ${animationState.mode === 'step' ? 'active' : ''}" data-mode="step" onclick="setAnimationMode('step')">
+                <button class="mini-mode-btn js-mini-mode-btn ${animationState.mode === 'step' ? 'active' : ''}" data-mode="step">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><path d="M19 13l-7 7-7-7m14-8l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Krok
                 </button>
@@ -1345,11 +1339,11 @@ function createQuestionCard(item, tabId) {
                 </div>
             </div>
 
-            <div class="interactive-area" onclick="event.stopPropagation()">
+            <div class="interactive-area">
                 <textarea class="calc-area" placeholder="Místo pro tvé výpočty..."></textarea>
                 <div class="result-row">
                     <input type="text" class="result-input" placeholder="Tvůj výsledek (např. 2x+1)">
-                    <button class="check-btn" onclick="checkAnswer('${tabId}', ${item.id - 1}, this)">
+                    <button class="check-btn js-check-btn" data-tab="${tabId}" data-index="${item.id - 1}">
                         Zkontrolovat
                     </button>
                 </div>
@@ -1358,16 +1352,95 @@ function createQuestionCard(item, tabId) {
     `;
 }
 
-// === CARD INTERACTION ===
-async function handleCardClick(tabId, index, event) {
-    // If clicking calculation area, input, or button, ignore
-    if (event.target.closest('.interactive-area') || event.target.closest('.card-controls')) {
-        return;
+// === EVENT HANDLERS & DELEGATION ===
+
+function setupEventListeners() {
+    // 1. Static Elements (Header & Nav)
+
+    // Mode Toggles
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const mode = e.currentTarget.dataset.mode;
+            setAnimationMode(mode);
+        });
+    });
+
+    // Regenerate Button
+    const regenBtn = document.getElementById('regenerate-btn');
+    if (regenBtn) {
+        regenBtn.addEventListener('click', regenerateAll);
     }
 
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tabId = e.currentTarget.dataset.tab;
+            switchTab(tabId);
+        });
+    });
+
+
+    // 2. Dynamic Elements (Event Delegation)
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+
+        // A. Mini Mode Buttons inside cards
+        if (target.closest('.js-mini-mode-btn')) {
+            e.stopPropagation();
+            const btn = target.closest('.js-mini-mode-btn');
+            const mode = btn.dataset.mode;
+            setAnimationMode(mode);
+            return;
+        }
+
+        // B. Check Answer Button
+        if (target.closest('.js-check-btn')) {
+            e.stopPropagation();
+            const btn = target.closest('.js-check-btn');
+            const tabId = btn.dataset.tab;
+            const index = parseInt(btn.dataset.index);
+            checkAnswer(tabId, index, btn);
+            return;
+        }
+
+        // C. Interactive Area (TextBox, etc.) - Stop Propagation to prevent card expand
+        if (target.closest('.interactive-area') || target.closest('.card-controls')) {
+            e.stopPropagation();
+            return;
+        }
+
+        // D. Question Card (Expansion)
+        const card = target.closest('.question-card');
+        if (card) {
+            const tabId = card.dataset.tab;
+            const index = parseInt(card.dataset.index); // Note: index was item.id - 1
+            // We need to pass the event to handleCardClick or call it directly
+            // handleCardClick expects (tabId, index, event)
+
+            // To be consistent with data, we need the actual array index. 
+            // In createQuestionCard we used `item.id - 1` for index data-attr?
+            // Yes: data-index="${item.id - 1}"
+
+            if (tabId && !isNaN(index)) {
+                // Manually reconstructing a simpler event object or just passing 'card' reference logic
+                // reusing existing function logic requires strict args.
+                // handleCardClick uses `event.currentTarget` as card.
+
+                // Let's modify handleCardClick to be cleaner or wrap it here.
+                // For now, let's call it. We need to mock 'event' to have currentTarget = card
+                // But wait, in delegation 'e.currentTarget' is document. 
+                // We must change handleCardClick to accept the card element directly or bind scope.
+
+                handleCardClickDelegated(card, tabId, index);
+            }
+        }
+    });
+}
+
+// Updated handler for delegation
+async function handleCardClickDelegated(card, tabId, index) {
     const item = allData[tabId][index];
     const cardId = `${tabId}-${item.id}`;
-    const card = event.currentTarget;
 
     // If animation in progress, skip to next step
     if (animationState.inProgress && animationState.canSkip) {
@@ -1399,6 +1472,7 @@ async function handleCardClick(tabId, index, event) {
         await animateSolution(cardId, item);
     }
 }
+
 
 // === ANIMATION ENGINE ===
 async function animateSolution(cardId, item) {
@@ -1505,6 +1579,7 @@ async function animateSolution(cardId, item) {
     animationState.inProgress = false;
 }
 
+
 // Helper function to wait for click in step mode
 function waitForClick() {
     return new Promise(resolve => {
@@ -1512,7 +1587,7 @@ function waitForClick() {
     });
 }
 
-// Helper function to wait or skip on click
+// Helper function to wait or skip on click (Unused now but kept)
 function waitOrSkip(ms) {
     return new Promise(resolve => {
         animationState.currentResolve = resolve;
@@ -1522,6 +1597,7 @@ function waitOrSkip(ms) {
         }, ms);
     });
 }
+
 
 // === TAB SWITCHING ===
 function switchTab(tabId) {
@@ -1540,18 +1616,15 @@ function switchTab(tabId) {
 }
 
 
-
-// === EXPOSE GLOBALS FOR INLINE HANDLERS ===
-window.setAnimationMode = setAnimationMode;
-window.regenerateAll = regenerateAll;
-window.switchTab = switchTab;
-window.handleCardClick = handleCardClick;
-
-window.checkAnswer = checkAnswer;
-
 // === START APP ===
-// When using type="module", the script is deferred. 
-// DOMContentLoaded might have already fired, so we check readyState.
+function initializeApp() {
+    console.log("Initializing App via Event Listeners...");
+    setupEventListeners();
+    generateAllData();
+    renderContent('cv1');
+    updateProgressBar();
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
