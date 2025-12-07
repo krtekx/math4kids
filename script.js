@@ -1461,5 +1461,17 @@ function generatePrintContent() {
     `).join('');
 }
 
+// === EXPOSE GLOBALS FOR INLINE HANDLERS ===
+window.setAnimationMode = setAnimationMode;
+window.regenerateAll = regenerateAll;
+window.switchTab = switchTab;
+window.handleCardClick = handleCardClick;
+
 // === START APP ===
-document.addEventListener('DOMContentLoaded', initializeApp);
+// When using type="module", the script is deferred. 
+// DOMContentLoaded might have already fired, so we check readyState.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
