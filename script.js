@@ -1614,6 +1614,13 @@ function switchTab(tabId) {
 }
 
 
+// === EXPOSE GLOBALS FOR INLINE HANDLERS (Validation Fallback) ===
+window.setAnimationMode = setAnimationMode;
+window.regenerateAll = regenerateAll;
+window.switchTab = switchTab;
+window.handleCardClick = handleCardClick;
+window.checkAnswer = checkAnswer;
+
 // === START APP ===
 function initializeApp() {
     console.log("Initializing App via Event Listeners...");
