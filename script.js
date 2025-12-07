@@ -2016,9 +2016,17 @@ function setupKeyboard() {
     }
 
     // Close keyboard when clicking outside
+    let keyboardJustOpened = false;
+
     document.addEventListener('click', (e) => {
         // Don't close if clicking on keyboard itself or input fields
         if (keyboard.classList.contains('hidden')) return;
+
+        // Don't close immediately after opening (prevents same click from closing)
+        if (keyboardJustOpened) {
+            keyboardJustOpened = false;
+            return;
+        }
 
         const clickedOnKeyboard = keyboard.contains(e.target);
         const clickedOnInput = e.target.classList.contains('result-input') ||
@@ -2030,6 +2038,25 @@ function setupKeyboard() {
             activeInput = null;
         }
     });
+
+    // Update focusin handler to set flag
+    const originalFocusHandler = document.querySelector('body');
+    document.addEventListener('focusin', (e) => {
+        if (e.target.classList.contains('result-input') || e.target.classList.contains('calc-area')) {
+            activeInput = e.target;
+            const wasHidden = keyboard.classList.contains('hidden');
+            keyboard.classList.remove('hidden');
+            document.body.style.paddingBottom = '150px';
+
+            // Set flag to prevent immediate closing
+            if (wasHidden) {
+                keyboardJustOpened = true;
+                setTimeout(() => {
+                    keyboardJustOpened = false;
+                }, 150);
+            }
+        }
+    }, true); // Use capture phase
 }
 
 function insertTextAtCursor(input, text) {

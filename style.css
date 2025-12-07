@@ -1054,34 +1054,34 @@ body {
 /* === VIRTUAL KEYBOARD === */
 .math-keyboard {
     position: fixed;
-    bottom: 20px;
+    top: 80px;
     left: 50%;
     transform: translateX(-50%);
     max-width: 600px;
     width: calc(100% - 40px);
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     padding: var(--spacing-lg);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-    animation: slideUpFade 0.3s ease-out;
+    animation: slideDownFade 0.3s ease-out;
     border-radius: var(--radius-xl);
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .math-keyboard.hidden {
-    transform: translateX(-50%) translateY(150%);
+    transform: translateX(-50%) translateY(-150%);
     pointer-events: none;
     opacity: 0;
 }
 
-@keyframes slideUpFade {
+@keyframes slideDownFade {
     from {
-        transform: translateX(-50%) translateY(150%);
+        transform: translateX(-50%) translateY(-150%);
         opacity: 0;
     }
 
