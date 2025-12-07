@@ -1322,8 +1322,30 @@ function areAnswersEquivalent(userAnswer, correctAnswer) {
 
     if (userNorm === correctNorm) return true;
 
-    // 4. No match
+    // 4. Try multiple conditions (handles x≠0; x≠4 vs x≠0 x≠4)
+    if (areMultipleConditionsEquivalent(user, correct)) return true;
+
+    // 5. No match
     return false;
+}
+
+// Check if multiple conditions are equivalent (ignoring punctuation and order)
+function areMultipleConditionsEquivalent(user, correct) {
+    // Split by common separators: semicolon, comma, 'and', or multiple spaces
+    const userConditions = user.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0).sort();
+    const correctConditions = correct.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0).sort();
+
+    // Must have same number of conditions
+    if (userConditions.length !== correctConditions.length) return false;
+
+    // Compare each condition
+    for (let i = 0; i < userConditions.length; i++) {
+        if (userConditions[i] !== correctConditions[i]) {
+            return false;
+        }
+    }
+
+    return userConditions.length > 0; // Only return true if we actually found conditions
 }
 
 // Evaluate simple numerical expressions (including fractions)
