@@ -1686,6 +1686,44 @@ function setupKeyboard() {
             convertSelectionToSuperscript(activeInput);
         });
     }
+
+    // Backspace button
+    const backspaceBtn = document.getElementById('btn-backspace');
+    if (backspaceBtn) {
+        backspaceBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!activeInput) return;
+
+            const start = activeInput.selectionStart;
+            const end = activeInput.selectionEnd;
+
+            if (start !== end) {
+                // Delete selection
+                activeInput.value = activeInput.value.substring(0, start) + activeInput.value.substring(end);
+                activeInput.selectionStart = activeInput.selectionEnd = start;
+            } else if (start > 0) {
+                // Delete character before cursor
+                activeInput.value = activeInput.value.substring(0, start - 1) + activeInput.value.substring(start);
+                activeInput.selectionStart = activeInput.selectionEnd = start - 1;
+            }
+            activeInput.focus();
+        });
+    }
+
+    // Back arrow button (move cursor left)
+    const backBtn = document.getElementById('btn-back');
+    if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!activeInput) return;
+
+            const pos = activeInput.selectionStart;
+            if (pos > 0) {
+                activeInput.selectionStart = activeInput.selectionEnd = pos - 1;
+            }
+            activeInput.focus();
+        });
+    }
 }
 
 function insertTextAtCursor(input, text) {
