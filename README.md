@@ -2,6 +2,8 @@
 
 Moderní webová aplikace pro výuku algebraických výrazů s vizuálními vysvětleními a krok-za-krokem postupy.
 
+[**🌐 Spustit aplikaci online**](https://krtekx.github.io/math4kids/)
+
 ## ✨ Funkce
 
 - **5 kategorií příkladů** (100 příkladů v každé kategorii):
