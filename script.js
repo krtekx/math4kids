@@ -1695,12 +1695,6 @@ function setupEventListeners() {
             return;
         }
 
-        // E. Interactive Area (TextBox, etc.) - Stop Propagation to prevent card expand
-        if (target.closest('.interactive-area') || target.closest('.card-header-row') || target.closest('.solution-controls')) {
-            e.stopPropagation();
-            return;
-        }
-
         // D. Question Card (Expansion)
         const card = target.closest('.question-card');
         if (card) {
@@ -1726,8 +1720,23 @@ function setupEventListeners() {
                 handleCardClickDelegated(card, tabId, index);
             }
         }
+
+        // E. Interactive Area (TextBox, etc.) - Stop Propagation to prevent card expand
+        if (target.closest('.interactive-area') || target.closest('.card-header-row') || target.closest('.solution-controls')) {
+            e.stopPropagation();
+            return;
+        }
+    });
+
+    // Prevent Enter key in calc-area from triggering card click
+    document.addEventListener('keydown', (e) => {
+        if (e.target.classList.contains('calc-area') && e.key === 'Enter') {
+            // Allow normal textarea behavior (new line), but stop propagation
+            e.stopPropagation();
+        }
     });
 }
+
 
 // Updated handler for delegation
 async function handleCardClickDelegated(card, tabId, index) {
@@ -2016,6 +2025,22 @@ function setupKeyboard() {
             activeInput.focus();
         });
     }
+
+    // Close keyboard when clicking outside
+    document.addEventListener('click', (e) => {
+        // Don't close if clicking on keyboard itself or input fields
+        if (keyboard.classList.contains('hidden')) return;
+
+        const clickedOnKeyboard = keyboard.contains(e.target);
+        const clickedOnInput = e.target.classList.contains('result-input') ||
+            e.target.classList.contains('calc-area');
+
+        if (!clickedOnKeyboard && !clickedOnInput) {
+            keyboard.classList.add('hidden');
+            document.body.style.paddingBottom = '0';
+            activeInput = null;
+        }
+    });
 }
 
 function insertTextAtCursor(input, text) {
