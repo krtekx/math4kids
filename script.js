@@ -1332,20 +1332,45 @@ function areAnswersEquivalent(userAnswer, correctAnswer) {
 // Check if multiple conditions are equivalent (ignoring punctuation and order)
 function areMultipleConditionsEquivalent(user, correct) {
     // Split by common separators: semicolon, comma, 'and', or multiple spaces
-    const userConditions = user.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0).sort();
-    const correctConditions = correct.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0).sort();
+    const userConditions = user.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0);
+    const correctConditions = correct.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0);
 
     // Must have same number of conditions
     if (userConditions.length !== correctConditions.length) return false;
+    if (userConditions.length === 0) return false;
 
-    // Compare each condition
-    for (let i = 0; i < userConditions.length; i++) {
-        if (userConditions[i] !== correctConditions[i]) {
+    // Normalize each condition (evaluate fractions, simplify)
+    const normalizeCondition = (cond) => {
+        // Match patterns like: x≠-8/4, y≠5, x∈ℝ, etc.
+        // Split by operator (≠, =, ∈, <, >, ≤, ≥)
+        const match = cond.match(/^([a-z]+)(≠|=|∈|<|>|≤|≥)(.+)$/);
+        if (match) {
+            const variable = match[1];
+            const operator = match[2];
+            let value = match[3];
+
+            // Try to evaluate the value (handles fractions like -8/4)
+            const numValue = evaluateExpression(value);
+            if (numValue !== null) {
+                value = numValue.toString();
+            }
+
+            return `${variable}${operator}${value}`;
+        }
+        return cond; // Return as-is if pattern doesn't match
+    };
+
+    const userNormalized = userConditions.map(normalizeCondition).sort();
+    const correctNormalized = correctConditions.map(normalizeCondition).sort();
+
+    // Compare each normalized condition
+    for (let i = 0; i < userNormalized.length; i++) {
+        if (userNormalized[i] !== correctNormalized[i]) {
             return false;
         }
     }
 
-    return userConditions.length > 0; // Only return true if we actually found conditions
+    return true;
 }
 
 // Evaluate simple numerical expressions (including fractions)
