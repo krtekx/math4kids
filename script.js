@@ -1633,7 +1633,8 @@ function setAnimationMode(mode) {
 window.setAnimationMode = setAnimationMode;
 window.regenerateAll = regenerateAll;
 window.switchTab = switchTab;
-window.handleCardClick = handleCardClick;
+// Fix: assign the delegated version to the global name expected by HTML
+window.handleCardClick = handleCardClickDelegated;
 window.checkAnswer = checkAnswer;
 
 // === START APP ===
