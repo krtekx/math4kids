@@ -1635,10 +1635,122 @@ window.switchTab = switchTab;
 window.handleCardClick = handleCardClickDelegated;
 window.checkAnswer = checkAnswer;
 
+// === VIRTUAL KEYBOARD LOGIC ===
+let activeInput = null;
+
+function setupKeyboard() {
+    const keyboard = document.getElementById('math-keyboard');
+    const closeBtn = document.getElementById('btn-close-keyboard');
+    const allKeys = document.querySelectorAll('.key-btn[data-key]');
+    const powerBtn = document.getElementById('btn-to-power');
+
+    if (!keyboard) return;
+
+    // Show keyboard when any result input or textarea is focused
+    // We use delegation on document because inputs are dynamic
+    document.addEventListener('focusin', (e) => {
+        if (e.target.classList.contains('result-input') || e.target.classList.contains('calc-area')) {
+            activeInput = e.target;
+            keyboard.classList.remove('hidden');
+            // Ensure content isn't covered by keyboard (simple padding adjustment)
+            document.body.style.paddingBottom = '150px';
+        }
+    });
+
+    // Close button
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            keyboard.classList.add('hidden');
+            document.body.style.paddingBottom = '0';
+            activeInput = null;
+        });
+    }
+
+    // Key presses
+    allKeys.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent focus loss if possible, though focusin handles it
+
+            if (!activeInput) return;
+
+            const char = btn.dataset.key;
+            insertTextAtCursor(activeInput, char);
+        });
+    });
+
+    // Power conversion button: "aⁿ"
+    if (powerBtn) {
+        powerBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!activeInput) return;
+            convertSelectionToSuperscript(activeInput);
+        });
+    }
+}
+
+function insertTextAtCursor(input, text) {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const val = input.value;
+
+    // Insert text
+    input.value = val.substring(0, start) + text + val.substring(end);
+
+    // Move cursor after inserted text
+    input.selectionStart = input.selectionEnd = start + text.length;
+    input.focus();
+}
+
+function convertSelectionToSuperscript(input) {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+
+    if (start === end) {
+        // No selection? Maybe try to convert the character BEFORE cursor?
+        if (start > 0) {
+            const charBefore = input.value[start - 1];
+            const superChar = toSuperscript(charBefore);
+            if (superChar !== charBefore) {
+                // It was a convertible number!
+                input.value = input.value.substring(0, start - 1) + superChar + input.value.substring(start);
+                input.selectionStart = input.selectionEnd = start; // Cursor stays after modified char
+                return;
+            }
+        }
+        return; // Nothing to convert
+    }
+
+    const selection = input.value.substring(start, end);
+    let converted = '';
+
+    for (let char of selection) {
+        converted += toSuperscript(char);
+    }
+
+    // Replace selection
+    input.value = input.value.substring(0, start) + converted + input.value.substring(end);
+
+    // Keep selection selected? Or move after? Moving after is standard for typing.
+    input.selectionStart = input.selectionEnd = start + converted.length;
+    input.focus();
+}
+
+const SUPERSCRIPT_MAP = {
+    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+    '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+    '+': '⁺', '-': '⁻', 'x': 'ˣ', 'y': 'ʸ', '(': '⁽', ')': '⁾'
+};
+
+function toSuperscript(char) {
+    return SUPERSCRIPT_MAP[char] || char; // Return original if no mapping
+}
+
+
 // === START APP ===
 function initializeApp() {
     console.log("Initializing App via Event Listeners...");
     setupEventListeners();
+    setupKeyboard(); // Initialize keyboard
     generateAllData();
     renderContent('cv1');
     updateProgressBar();
