@@ -1371,9 +1371,10 @@ function areMultipleConditionsEquivalent(user, correct, returnDetails = false) {
 
         // If we still only have one condition, try splitting by spaces between complete conditions
         // Look for pattern: (condition)(space)(condition)
-        // A condition is: variable + operator + value
+        // A condition is: variable + operator + value (including Unicode like ³√)
         if (conditions.length === 1) {
-            const conditionPattern = /([a-z]+[≠=∈<>≤≥][^\s;,]+)/g;
+            // Updated pattern to capture Unicode characters in value
+            const conditionPattern = /([a-z]+[≠=∈<>≤≥][^\s;,]+)/gu;
             const matches = str.match(conditionPattern);
             if (matches && matches.length > 1) {
                 conditions = matches;
