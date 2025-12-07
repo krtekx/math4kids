@@ -1695,36 +1695,25 @@ function setupEventListeners() {
             return;
         }
 
-        // D. Question Card (Expansion)
+        // D. Interactive Area - Stop Propagation BEFORE card check to prevent animation
+        if (target.closest('.interactive-area') ||
+            target.closest('.card-header-row') ||
+            target.closest('.solution-controls') ||
+            target.classList.contains('result-input') ||
+            target.classList.contains('calc-area')) {
+            e.stopPropagation();
+            return;
+        }
+
+        // E. Question Card (Expansion) - only if not clicking on interactive elements
         const card = target.closest('.question-card');
         if (card) {
             const tabId = card.dataset.tab;
-            const index = parseInt(card.dataset.index); // Note: index was item.id - 1
-            // We need to pass the event to handleCardClick or call it directly
-            // handleCardClick expects (tabId, index, event)
-
-            // To be consistent with data, we need the actual array index. 
-            // In createQuestionCard we used `item.id - 1` for index data-attr?
-            // Yes: data-index="${item.id - 1}"
+            const index = parseInt(card.dataset.index);
 
             if (tabId && !isNaN(index)) {
-                // Manually reconstructing a simpler event object or just passing 'card' reference logic
-                // reusing existing function logic requires strict args.
-                // handleCardClick uses `event.currentTarget` as card.
-
-                // Let's modify handleCardClick to be cleaner or wrap it here.
-                // For now, let's call it. We need to mock 'event' to have currentTarget = card
-                // But wait, in delegation 'e.currentTarget' is document. 
-                // We must change handleCardClick to accept the card element directly or bind scope.
-
                 handleCardClickDelegated(card, tabId, index);
             }
-        }
-
-        // E. Interactive Area (TextBox, etc.) - Stop Propagation to prevent card expand
-        if (target.closest('.interactive-area') || target.closest('.card-header-row') || target.closest('.solution-controls')) {
-            e.stopPropagation();
-            return;
         }
     });
 
