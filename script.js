@@ -1270,12 +1270,11 @@ function checkAnswer(tabId, index, btnElement) {
     const item = allData[tabId][index];
     const card = btnElement.closest('.question-card');
     const input = card.querySelector('.result-input');
-    const userVal = input.value.replace(/\s/g, '').toLowerCase(); // Remove spaces, toLowerCase
-    const correctVal = item.res.replace(/\s/g, '').toLowerCase(); // Remove spaces from result
+    const userVal = input.value.trim();
+    const correctVal = item.res.trim();
 
-    // Basic validation - exact string match after cleanup
-    // Enhancements could include parsing, but strict formatting enforces discipline
-    if (userVal === correctVal) {
+    // Check if answers are equivalent (handles multiple formats)
+    if (areAnswersEquivalent(userVal, correctVal)) {
         // Correct
         if (!card.classList.contains('solved')) {
             updateScore(2);
@@ -1284,8 +1283,6 @@ function checkAnswer(tabId, index, btnElement) {
             input.disabled = true;
             btnElement.textContent = "Správně!";
             btnElement.disabled = true;
-
-            // Show confetti or visual cue?
         }
     } else {
         // Incorrect
@@ -1299,6 +1296,105 @@ function checkAnswer(tabId, index, btnElement) {
             }, 500);
         }
     }
+}
+
+// Helper function to check if two answers are equivalent
+function areAnswersEquivalent(userAnswer, correctAnswer) {
+    // Normalize both answers (remove spaces, lowercase)
+    const user = userAnswer.replace(/\s/g, '').toLowerCase();
+    const correct = correctAnswer.replace(/\s/g, '').toLowerCase();
+
+    // 1. Exact match
+    if (user === correct) return true;
+
+    // 2. Try numerical evaluation (handles fractions and decimals)
+    const userNum = evaluateExpression(user);
+    const correctNum = evaluateExpression(correct);
+
+    if (userNum !== null && correctNum !== null) {
+        // Both are numbers, compare with small tolerance for floating point
+        return Math.abs(userNum - correctNum) < 0.0001;
+    }
+
+    // 3. Try algebraic normalization (handles commutativity like 2x+1 = 1+2x)
+    const userNorm = normalizeAlgebraic(user);
+    const correctNorm = normalizeAlgebraic(correct);
+
+    if (userNorm === correctNorm) return true;
+
+    // 4. No match
+    return false;
+}
+
+// Evaluate simple numerical expressions (including fractions)
+function evaluateExpression(expr) {
+    try {
+        // Handle fractions like -9/4
+        if (/^-?\d+\/\d+$/.test(expr)) {
+            const parts = expr.split('/');
+            return parseFloat(parts[0]) / parseFloat(parts[1]);
+        }
+
+        // Handle decimals
+        if (/^-?\d+\.?\d*$/.test(expr)) {
+            return parseFloat(expr);
+        }
+
+        // For safety, only evaluate simple arithmetic
+        // Don't use eval for complex expressions
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Normalize algebraic expressions for comparison
+function normalizeAlgebraic(expr) {
+    // Remove all spaces
+    expr = expr.replace(/\s/g, '');
+
+    // Replace common variations
+    expr = expr.replace(/·/g, '*');
+    expr = expr.replace(/×/g, '*');
+
+    // Split by + and - while keeping the operators
+    // This regex splits but keeps delimiters
+    const terms = [];
+    let currentTerm = '';
+    let currentSign = '+';
+
+    for (let i = 0; i < expr.length; i++) {
+        const char = expr[i];
+
+        if ((char === '+' || char === '-') && i > 0 && expr[i - 1] !== '(') {
+            // Found a term boundary
+            if (currentTerm) {
+                terms.push(currentSign + currentTerm);
+            }
+            currentSign = char;
+            currentTerm = '';
+        } else {
+            currentTerm += char;
+        }
+    }
+
+    // Add the last term
+    if (currentTerm) {
+        terms.push(currentSign + currentTerm);
+    }
+
+    // Sort terms alphabetically (this handles commutativity)
+    terms.sort();
+
+    // Join back together
+    let normalized = terms.join('');
+
+    // Clean up leading +
+    if (normalized.startsWith('+')) {
+        normalized = normalized.substring(1);
+    }
+
+    return normalized;
 }
 
 
