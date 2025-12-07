@@ -1197,7 +1197,7 @@ function generateAllData() {
     allData.cv4 = generateEx4(100);
     allData.cv5 = generateEx5(100);
 
-    generatePrintContent();
+    allData.cv5 = generateEx5(100);
 }
 
 function regenerateAll() {
@@ -1539,33 +1539,7 @@ function switchTab(tabId) {
     }
 }
 
-// === PRINT CONTENT ===
-function generatePrintContent() {
-    const printContainer = document.getElementById('print-content');
 
-    const sections = [
-        { title: '1. Hodnota výrazu (100 příkladů)', data: allData.cv1 },
-        { title: '2. Podmínky řešitelnosti (100 příkladů)', data: allData.cv2 },
-        { title: '3. Operace s mnohočleny (100 příkladů)', data: allData.cv3 },
-        { title: '4. Zjednodušování výrazů (100 příkladů)', data: allData.cv4 },
-        { title: '5. Vytýkání (100 příkladů)', data: allData.cv5 }
-    ];
-
-    printContainer.innerHTML = sections.map(section => `
-        <div class="print-section">
-            <h2>${section.title}</h2>
-            <ul class="print-list">
-                ${section.data.map(item => `
-                    <li class="print-item">
-                        <span class="print-id">${item.id}.</span>
-                        <span class="print-question">${item.q} =</span>
-                        ${item.params && item.params !== "Urči podmínky" ? `<span class="print-params">(${item.params})</span>` : ''}
-                    </li>
-                `).join('')}
-            </ul>
-        </div>
-    `).join('');
-}
 
 // === EXPOSE GLOBALS FOR INLINE HANDLERS ===
 window.setAnimationMode = setAnimationMode;
