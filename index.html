@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matematika pro děti - Interaktivní výuka</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo">
+                        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path
+                                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        <div>
+                            <h1>Matematika pro děti</h1>
+                            <p class="subtitle">Interaktivní výuka algebraických výrazů</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="mode-toggle">
+                        <button class="mode-btn active" data-mode="autoplay" onclick="setAnimationMode('autoplay')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path
+                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                    stroke-width="2" />
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" />
+                            </svg>
+                            Autoplay
+                        </button>
+                        <button class="mode-btn" data-mode="step" onclick="setAnimationMode('step')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                    stroke-width="2" />
+                            </svg>
+                            Step
+                        </button>
+                    </div>
+                    <button class="btn-icon" onclick="regenerateAll()" title="Nové příklady">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <button class="btn-primary" onclick="window.print()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                stroke-width="2" />
+                        </svg>
+                        Tisk PDF
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs screen-only">
+            <button class="tab-btn active" data-tab="cv1" onclick="switchTab('cv1')">
+                <span class="tab-number">1</span>
+                <span class="tab-label">Hodnoty výrazů</span>
+            </button>
+            <button class="tab-btn" data-tab="cv2" onclick="switchTab('cv2')">
+                <span class="tab-number">2</span>
+                <span class="tab-label">Podmínky</span>
+            </button>
+            <button class="tab-btn" data-tab="cv3" onclick="switchTab('cv3')">
+                <span class="tab-number">3</span>
+                <span class="tab-label">Mnohočleny</span>
+            </button>
+            <button class="tab-btn" data-tab="cv4" onclick="switchTab('cv4')">
+                <span class="tab-number">4</span>
+                <span class="tab-label">Zjednodušování</span>
+            </button>
+            <button class="tab-btn" data-tab="cv5" onclick="switchTab('cv5')">
+                <span class="tab-number">5</span>
+                <span class="tab-label">Vytýkání</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content screen-only">
+            <div id="content-cv1" class="tab-content active"></div>
+            <div id="content-cv2" class="tab-content"></div>
+            <div id="content-cv3" class="tab-content"></div>
+            <div id="content-cv4" class="tab-content"></div>
+            <div id="content-cv5" class="tab-content"></div>
+
+            <!-- Animation Template -->
+            <template id="highlight-template">
+                <span class="highlight-box"></span>
+            </template>
+        </main>
+
+        <!-- Print View -->
+        <div class="print-only">
+            <h1 class="print-title">PRACOVNÍ LIST - ALGEBRAICKÉ VÝRAZY</h1>
+            <div class="print-header-info">
+                <span>Jméno: _______________________</span>
+                <span>Datum: ____________</span>
+            </div>
+            <div id="print-content"></div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer screen-only">
+            <p>Vytvořeno pro procvičování matematiky • Použij tlačítko Tisk pro vytvoření PDF</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
