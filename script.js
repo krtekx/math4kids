@@ -1196,8 +1196,6 @@ function generateAllData() {
     allData.cv3 = generateEx3(100);
     allData.cv4 = generateEx4(100);
     allData.cv5 = generateEx5(100);
-
-    allData.cv5 = generateEx5(100);
 }
 
 function regenerateAll() {
