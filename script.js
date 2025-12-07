@@ -1737,6 +1737,28 @@ function setupEventListeners() {
             e.stopPropagation();
         }
     });
+
+    // Prevent mouse events on interactive elements from triggering card animation
+    document.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('calc-area') ||
+            e.target.classList.contains('result-input')) {
+            e.stopPropagation();
+        }
+    });
+
+    document.addEventListener('mouseup', (e) => {
+        if (e.target.classList.contains('calc-area') ||
+            e.target.classList.contains('result-input')) {
+            e.stopPropagation();
+        }
+    });
+
+    document.addEventListener('dblclick', (e) => {
+        if (e.target.classList.contains('calc-area') ||
+            e.target.classList.contains('result-input')) {
+            e.stopPropagation();
+        }
+    });
 }
 
 
