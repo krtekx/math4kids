@@ -1614,6 +1614,21 @@ function switchTab(tabId) {
 }
 
 
+// === UI HELPERS ===
+function setAnimationMode(mode) {
+    animationState.mode = mode;
+
+    // Update main toggle buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+
+    // Update mini toggle buttons in cards
+    document.querySelectorAll('.mini-mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+}
+
 // === EXPOSE GLOBALS FOR INLINE HANDLERS (Validation Fallback) ===
 window.setAnimationMode = setAnimationMode;
 window.regenerateAll = regenerateAll;
