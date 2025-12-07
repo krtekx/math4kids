@@ -80,11 +80,17 @@ body {
 .app-header {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border-radius: var(--radius-2xl);
-    padding: var(--spacing-xl);
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    /* Rounded only at bottom */
+    padding: var(--spacing-md) var(--spacing-xl);
+    /* Smaller vertical padding */
     margin-bottom: var(--spacing-xl);
     box-shadow: var(--shadow-xl);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
 }
 
 .header-content {
