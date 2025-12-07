@@ -1211,8 +1211,13 @@ function regenerateAll() {
 function setAnimationMode(mode) {
     animationState.mode = mode;
 
-    // Update UI
+    // Update Header UI
     document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+
+    // Update Card UI (Mini buttons)
+    document.querySelectorAll('.mini-mode-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.mode === mode);
     });
 }
@@ -1236,6 +1241,17 @@ function createQuestionCard(item, tabId) {
 
     return `
         <div class="question-card ${isExpanded ? 'expanded' : ''}" data-card-id="${cardId}">
+            <div class="card-controls" onclick="event.stopPropagation()">
+                <button class="mini-mode-btn ${animationState.mode === 'autoplay' ? 'active' : ''}" data-mode="autoplay" onclick="setAnimationMode('autoplay')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><path d="M5 3l14 9-14 9V3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Auto
+                </button>
+                <button class="mini-mode-btn ${animationState.mode === 'step' ? 'active' : ''}" data-mode="step" onclick="setAnimationMode('step')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><path d="M19 13l-7 7-7-7m14-8l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Krok
+                </button>
+            </div>
+            
             ${item.params ? `<div class="card-params">${item.params}</div>` : ''}
             
             <div class="card-question" id="question-${cardId}">
