@@ -1457,6 +1457,18 @@ function areMultipleConditionsEquivalent(user, correct, returnDetails = false) {
 // Evaluate simple numerical expressions (including fractions and arithmetic)
 function evaluateExpression(expr) {
     try {
+        // Handle square root: √n
+        if (/^√\d+\.?\d*$/.test(expr)) {
+            const num = parseFloat(expr.substring(1));
+            return Math.sqrt(num);
+        }
+
+        // Handle cube root: ∛n
+        if (/^∛\d+\.?\d*$/.test(expr)) {
+            const num = parseFloat(expr.substring(1));
+            return Math.cbrt(num);
+        }
+
         // Handle simple fractions like -9/4
         if (/^-?\d+\/\d+$/.test(expr)) {
             const parts = expr.split('/');
