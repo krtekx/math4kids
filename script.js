@@ -1274,8 +1274,10 @@ function checkAnswer(tabId, index, btnElement) {
     const correctVal = item.res.trim();
 
     // Check if answers are equivalent (handles multiple formats)
-    if (areAnswersEquivalent(userVal, correctVal)) {
-        // Correct
+    const equivalenceResult = areAnswersEquivalent(userVal, correctVal, true); // Pass true to get detailed result
+
+    if (equivalenceResult === true || (equivalenceResult && equivalenceResult.fullMatch)) {
+        // Fully Correct
         if (!card.classList.contains('solved')) {
             updateScore(2);
             card.classList.add('solved');
@@ -1284,9 +1286,32 @@ function checkAnswer(tabId, index, btnElement) {
             btnElement.textContent = "Správně!";
             btnElement.disabled = true;
         }
+    } else if (equivalenceResult && equivalenceResult.partialMatch) {
+        // Partially Correct (some conditions match)
+        if (!card.classList.contains('solved') && !card.classList.contains('partial')) {
+            updateScore(1); // Award 1 point for partial
+            card.classList.add('partial');
+            input.classList.add('partial-correct');
+
+            // Show hint about missing conditions
+            const hintDiv = card.querySelector('.answer-hint') || document.createElement('div');
+            hintDiv.className = 'answer-hint';
+            hintDiv.innerHTML = `
+                <span class="hint-icon">⚠️</span>
+                <span class="hint-text">Správně! Ale chybí ještě: <strong>${equivalenceResult.missing.join(', ')}</strong></span>
+            `;
+
+            // Insert hint after input
+            const resultRow = card.querySelector('.result-row');
+            if (!card.querySelector('.answer-hint')) {
+                resultRow.parentNode.insertBefore(hintDiv, resultRow);
+            }
+
+            btnElement.textContent = "Zkus doplnit";
+        }
     } else {
         // Incorrect
-        if (!card.classList.contains('solved')) {
+        if (!card.classList.contains('solved') && !card.classList.contains('partial')) {
             updateScore(-1);
             input.classList.add('shake');
             input.classList.add('incorrect');
@@ -1299,13 +1324,13 @@ function checkAnswer(tabId, index, btnElement) {
 }
 
 // Helper function to check if two answers are equivalent
-function areAnswersEquivalent(userAnswer, correctAnswer) {
+function areAnswersEquivalent(userAnswer, correctAnswer, returnDetails = false) {
     // Normalize both answers (remove spaces, lowercase)
     const user = userAnswer.replace(/\s/g, '').toLowerCase();
     const correct = correctAnswer.replace(/\s/g, '').toLowerCase();
 
     // 1. Exact match
-    if (user === correct) return true;
+    if (user === correct) return returnDetails ? { fullMatch: true } : true;
 
     // 2. Try numerical evaluation (handles fractions and decimals)
     const userNum = evaluateExpression(user);
@@ -1313,24 +1338,26 @@ function areAnswersEquivalent(userAnswer, correctAnswer) {
 
     if (userNum !== null && correctNum !== null) {
         // Both are numbers, compare with small tolerance for floating point
-        return Math.abs(userNum - correctNum) < 0.0001;
+        const match = Math.abs(userNum - correctNum) < 0.0001;
+        return returnDetails ? (match ? { fullMatch: true } : false) : match;
     }
 
     // 3. Try algebraic normalization (handles commutativity like 2x+1 = 1+2x)
     const userNorm = normalizeAlgebraic(user);
     const correctNorm = normalizeAlgebraic(correct);
 
-    if (userNorm === correctNorm) return true;
+    if (userNorm === correctNorm) return returnDetails ? { fullMatch: true } : true;
 
     // 4. Try multiple conditions (handles x≠0; x≠4 vs x≠0 x≠4)
-    if (areMultipleConditionsEquivalent(user, correct)) return true;
+    const conditionResult = areMultipleConditionsEquivalent(user, correct, returnDetails);
+    if (conditionResult) return conditionResult;
 
     // 5. No match
-    return false;
+    return returnDetails ? false : false;
 }
 
 // Check if multiple conditions are equivalent (ignoring punctuation and order)
-function areMultipleConditionsEquivalent(user, correct) {
+function areMultipleConditionsEquivalent(user, correct, returnDetails = false) {
     // Split by common separators: semicolon, comma, 'and', or space between conditions
     // Use a more sophisticated split that handles: x≠0 x≠4 or x≠0; x≠4 or x≠0, x≠4
     const splitConditions = (str) => {
@@ -1359,9 +1386,7 @@ function areMultipleConditionsEquivalent(user, correct) {
     const userConditions = splitConditions(user);
     const correctConditions = splitConditions(correct);
 
-    // Must have same number of conditions
-    if (userConditions.length !== correctConditions.length) return false;
-    if (userConditions.length === 0) return false;
+    if (userConditions.length === 0 || correctConditions.length === 0) return false;
 
     // Normalize each condition (evaluate fractions, simplify)
     const normalizeCondition = (cond) => {
@@ -1379,22 +1404,53 @@ function areMultipleConditionsEquivalent(user, correct) {
                 value = numValue.toString();
             }
 
-            return `${variable}${operator}${value}`;
+            return { normalized: `${variable}${operator}${value}`, variable, operator, value };
         }
-        return cond; // Return as-is if pattern doesn't match
+        return { normalized: cond, variable: '', operator: '', value: '' };
     };
 
-    const userNormalized = userConditions.map(normalizeCondition).sort();
-    const correctNormalized = correctConditions.map(normalizeCondition).sort();
+    const userNormalized = userConditions.map(normalizeCondition);
+    const correctNormalized = correctConditions.map(normalizeCondition);
 
-    // Compare each normalized condition
-    for (let i = 0; i < userNormalized.length; i++) {
-        if (userNormalized[i] !== correctNormalized[i]) {
-            return false;
+    // Find matches
+    const userNormStrings = userNormalized.map(c => c.normalized).sort();
+    const correctNormStrings = correctNormalized.map(c => c.normalized).sort();
+
+    // Check for full match
+    if (userNormStrings.length === correctNormStrings.length) {
+        let allMatch = true;
+        for (let i = 0; i < userNormStrings.length; i++) {
+            if (userNormStrings[i] !== correctNormStrings[i]) {
+                allMatch = false;
+                break;
+            }
+        }
+        if (allMatch) {
+            return returnDetails ? { fullMatch: true } : true;
         }
     }
 
-    return true;
+    // Check for partial match (if returnDetails is true)
+    if (returnDetails) {
+        const matched = correctNormStrings.filter(c => userNormStrings.includes(c));
+
+        if (matched.length > 0 && matched.length < correctNormStrings.length) {
+            // Partial match! Find missing conditions
+            const missing = correctNormalized
+                .filter(c => !userNormStrings.includes(c.normalized))
+                .map(c => `${c.variable} ${c.operator} ???`);
+
+            return {
+                partialMatch: true,
+                fullMatch: false,
+                matched: matched.length,
+                total: correctNormStrings.length,
+                missing: missing
+            };
+        }
+    }
+
+    return false;
 }
 
 // Evaluate simple numerical expressions (including fractions and arithmetic)
