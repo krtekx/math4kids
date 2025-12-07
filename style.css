@@ -681,6 +681,15 @@ body {
     animation: fadeIn 0.5s ease;
 }
 
+.result-label {
+    margin-left: var(--spacing-md);
+    font-size: 0.9rem;
+    color: var(--success);
+    font-weight: 700;
+    font-style: normal;
+    animation: fadeIn 0.5s ease;
+}
+
 @keyframes bounceIn {
     0% {
         opacity: 0;

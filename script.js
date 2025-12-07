@@ -1742,8 +1742,8 @@ async function animateSolution(cardId, item) {
         lastLine = newLine;
     }
 
-    // Final result line
-    // Wait based on mode before showing final box if it's different/emphasized
+    // Enhance the last line as the final result (instead of creating duplicate)
+    // Wait based on mode before showing final styling
     if (animationState.mode === 'autoplay') {
         await sleep(500);
     } else {
@@ -1752,27 +1752,23 @@ async function animateSolution(cardId, item) {
         animationState.canSkip = false;
     }
 
-    const finalLine = document.createElement('div');
-    finalLine.className = 'expression-line final-line';
+    // Add "Výsledek" label and styling to the last line
+    if (lastLine) {
+        lastLine.classList.add('final-line');
 
-    const finalEquals = document.createElement('span');
-    finalEquals.className = 'equals';
-    finalEquals.textContent = '=';
-    finalLine.appendChild(finalEquals);
+        // Add result label
+        const resultLabel = document.createElement('span');
+        resultLabel.className = 'result-label';
+        resultLabel.textContent = ' ← Výsledek';
+        lastLine.appendChild(resultLabel);
 
-    const resultBox = document.createElement('span');
-    resultBox.className = 'result-box';
-    resultBox.textContent = item.res;
-    finalLine.appendChild(resultBox);
-
-    questionDiv.appendChild(finalLine);
-
-    // Add click hint
-    await sleep(300);
-    const hint = document.createElement('span');
-    hint.className = 'click-hint';
-    hint.textContent = '(klikni pro zavření)';
-    finalLine.appendChild(hint);
+        // Add click hint
+        await sleep(300);
+        const hint = document.createElement('span');
+        hint.className = 'click-hint';
+        hint.textContent = ' (klikni pro zavření)';
+        lastLine.appendChild(hint);
+    }
 
     animationState.inProgress = false;
 }
