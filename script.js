@@ -1331,9 +1331,33 @@ function areAnswersEquivalent(userAnswer, correctAnswer) {
 
 // Check if multiple conditions are equivalent (ignoring punctuation and order)
 function areMultipleConditionsEquivalent(user, correct) {
-    // Split by common separators: semicolon, comma, 'and', or multiple spaces
-    const userConditions = user.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0);
-    const correctConditions = correct.split(/[;,]|and/).map(c => c.trim()).filter(c => c.length > 0);
+    // Split by common separators: semicolon, comma, 'and', or space between conditions
+    // Use a more sophisticated split that handles: x≠0 x≠4 or x≠0; x≠4 or x≠0, x≠4
+    const splitConditions = (str) => {
+        // First try splitting by semicolon or comma
+        let conditions = str.split(/[;,]/).map(c => c.trim()).filter(c => c.length > 0);
+
+        // If we only got one condition, try splitting by 'and'
+        if (conditions.length === 1) {
+            conditions = str.split(/\s+and\s+/).map(c => c.trim()).filter(c => c.length > 0);
+        }
+
+        // If we still only have one condition, try splitting by spaces between complete conditions
+        // Look for pattern: (condition)(space)(condition)
+        // A condition is: variable + operator + value
+        if (conditions.length === 1) {
+            const conditionPattern = /([a-z]+[≠=∈<>≤≥][^\s;,]+)/g;
+            const matches = str.match(conditionPattern);
+            if (matches && matches.length > 1) {
+                conditions = matches;
+            }
+        }
+
+        return conditions.map(c => c.trim()).filter(c => c.length > 0);
+    };
+
+    const userConditions = splitConditions(user);
+    const correctConditions = splitConditions(correct);
 
     // Must have same number of conditions
     if (userConditions.length !== correctConditions.length) return false;
