@@ -1434,18 +1434,31 @@ function createQuestionCard(item, tabId) {
 
     return `
         <div class="question-card ${isExpanded ? 'expanded' : ''}" data-card-id="${cardId}" data-tab="${tabId}" data-index="${item.id - 1}">
-            <div class="card-controls">
-                <button class="mini-mode-btn js-mini-mode-btn ${animationState.mode === 'autoplay' ? 'active' : ''}" data-mode="autoplay">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><path d="M5 3l14 9-14 9V3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Auto
-                </button>
-                <button class="mini-mode-btn js-mini-mode-btn ${animationState.mode === 'step' ? 'active' : ''}" data-mode="step">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><path d="M19 13l-7 7-7-7m14-8l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Krok
-                </button>
+            <div class="card-header-row">
+                <div class="solution-controls">
+                    <button class="show-solution-btn js-show-solution" data-card-id="${cardId}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16">
+                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="2"/>
+                            <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-width="2"/>
+                        </svg>
+                        Ukáž postup
+                    </button>
+                    <div class="mode-toggle-mini">
+                        <button class="mini-mode-btn js-mini-mode-btn ${animationState.mode === 'autoplay' ? 'active' : ''}" data-mode="autoplay" title="Automatický postup">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14">
+                                <path d="M5 3l14 9-14 9V3z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button class="mini-mode-btn js-mini-mode-btn ${animationState.mode === 'step' ? 'active' : ''}" data-mode="step" title="Krok po kroku">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14">
+                                <path d="M19 13l-7 7-7-7m14-8l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                ${item.params ? `<div class="card-params">${item.params}</div>` : ''}
             </div>
-            
-            ${item.params ? `<div class="card-params">${item.params}</div>` : ''}
             
             <div class="card-question" id="question-${cardId}">
                 <div class="expression-line" id="line-${cardId}-0">
@@ -1454,7 +1467,16 @@ function createQuestionCard(item, tabId) {
             </div>
 
             <div class="interactive-area">
-                <textarea class="calc-area" placeholder="Místo pro tvé výpočty..."></textarea>
+                <div class="calc-header">
+                    <label>Mé výpočty:</label>
+                    <button class="copy-question-btn js-copy-question" data-card-id="${cardId}" data-question="${item.q.replace(/"/g, '&quot;')}" title="Zkopíruj zadání do mých výpočtů">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14">
+                            <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-width="2"/>
+                        </svg>
+                        Zkopíruj zadání
+                    </button>
+                </div>
+                <textarea class="calc-area" placeholder="Zde si můžeš vypočítat příklad krok po kroku..."></textarea>
                 <div class="result-row">
                     <input type="text" class="result-input" placeholder="Tvůj výsledek (např. 2x+1)">
                     <button class="check-btn js-check-btn" data-tab="${tabId}" data-index="${item.id - 1}">
@@ -1507,7 +1529,44 @@ function setupEventListeners() {
             return;
         }
 
-        // B. Check Answer Button
+        // B. Show Solution Button
+        if (target.closest('.js-show-solution')) {
+            e.stopPropagation();
+            const btn = target.closest('.js-show-solution');
+            const cardId = btn.dataset.cardId;
+            const card = document.querySelector(`[data-card-id="${cardId}"]`);
+            if (card) {
+                const tabId = card.dataset.tab;
+                const index = parseInt(card.dataset.index);
+                handleCardClickDelegated(card, tabId, index);
+            }
+            return;
+        }
+
+        // C. Copy Question Button
+        if (target.closest('.js-copy-question')) {
+            e.stopPropagation();
+            const btn = target.closest('.js-copy-question');
+            const question = btn.dataset.question;
+            const cardId = btn.dataset.cardId;
+            const card = document.querySelector(`[data-card-id="${cardId}"]`);
+            if (card) {
+                const textarea = card.querySelector('.calc-area');
+                if (textarea) {
+                    // Add question to textarea (append if there's already content)
+                    const currentContent = textarea.value.trim();
+                    if (currentContent) {
+                        textarea.value = currentContent + '\n\n' + question;
+                    } else {
+                        textarea.value = question;
+                    }
+                    textarea.focus();
+                }
+            }
+            return;
+        }
+
+        // D. Check Answer Button
         if (target.closest('.js-check-btn')) {
             e.stopPropagation();
             const btn = target.closest('.js-check-btn');
@@ -1517,8 +1576,8 @@ function setupEventListeners() {
             return;
         }
 
-        // C. Interactive Area (TextBox, etc.) - Stop Propagation to prevent card expand
-        if (target.closest('.interactive-area') || target.closest('.card-controls')) {
+        // E. Interactive Area (TextBox, etc.) - Stop Propagation to prevent card expand
+        if (target.closest('.interactive-area') || target.closest('.card-header-row') || target.closest('.solution-controls')) {
             e.stopPropagation();
             return;
         }
