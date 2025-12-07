@@ -700,6 +700,152 @@ body {
     }
 }
 
+/* === PROGRESS BAR & GAMIFICATION === */
+.progress-container {
+    flex: 1;
+    max-width: 300px;
+    margin: 0 var(--spacing-xl);
+}
+
+.rank-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+#rank-text {
+    color: var(--gray-500);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--gray-400);
+    /* Default, JS updates this */
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s ease;
+}
+
+/* === INTERACTIVE INPUT AREA === */
+.interactive-area {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-md);
+    border-top: 1px dashed var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    cursor: default;
+    /* Don't point like the card */
+}
+
+.calc-area {
+    width: 100%;
+    height: 60px;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    resize: vertical;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+
+.calc-area:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.result-row {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.result-input {
+    flex: 1;
+    padding: 0.6rem var(--spacing-md);
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-full);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.result-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.result-input.incorrect {
+    border-color: var(--danger);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+.result-input.correct {
+    border-color: var(--success);
+    background-color: rgba(16, 185, 129, 0.05);
+    color: var(--success);
+    font-weight: bold;
+}
+
+.check-btn {
+    background: var(--gray-800);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.check-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.check-btn:active {
+    transform: translateY(0);
+}
+
+.check-btn:disabled {
+    background: var(--success);
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.shake {
+    animation: shake 0.3s ease-in-out;
+}
+
 .solution-header {
     font-size: 0.75rem;
     font-weight: 700;

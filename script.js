@@ -1207,20 +1207,104 @@ function regenerateAll() {
     renderContent(activeTab);
 }
 
-// === ANIMATION MODE ===
-function setAnimationMode(mode) {
-    animationState.mode = mode;
+// === GAMIFICATION STATE ===
+let gameState = {
+    score: 0,
+    maxScore: 20,
+    rankIndex: 0
+};
 
-    // Update Header UI
-    document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mode === mode);
-    });
+const RANKS = [
+    { name: "Začátečník", min: 0, color: "#94a3b8" },    // Noob (Gray)
+    { name: "Učeň", min: 5, color: "#3b82f6" },          // Apprentice (Blue)
+    { name: "Počtář", min: 10, color: "#8b5cf6" },       // Calculator (Purple)
+    { name: "Mistr", min: 15, color: "#f59e0b" },        // Master (Orange)
+    { name: "Legenda", min: 20, color: "#ef4444" }       // Legend (Red)
+];
 
-    // Update Card UI (Mini buttons)
-    document.querySelectorAll('.mini-mode-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mode === mode);
-    });
+// === SCORE LOGIC ===
+function updateScore(change) {
+    const oldScore = gameState.score;
+    gameState.score += change;
+
+    // Limits
+    if (gameState.score < 0) gameState.score = 0;
+    if (gameState.score > gameState.maxScore) gameState.score = gameState.maxScore;
+
+    // Check Rank Up/Down
+    updateRank();
+    updateProgressBar();
+
+    // Animation for score change could be added here
 }
+
+function updateRank() {
+    let newRankIndex = 0;
+    for (let i = 0; i < RANKS.length; i++) {
+        if (gameState.score >= RANKS[i].min) {
+            newRankIndex = i;
+        }
+    }
+
+    if (newRankIndex !== gameState.rankIndex) {
+        // Rank changed!
+        gameState.rankIndex = newRankIndex;
+        // Could trigger celebration here
+    }
+}
+
+function updateProgressBar() {
+    const barFill = document.getElementById('progress-fill');
+    const scoreText = document.getElementById('score-text');
+    const rankText = document.getElementById('rank-text');
+
+    if (barFill && scoreText && rankText) {
+        const percentage = (gameState.score / gameState.maxScore) * 100;
+        barFill.style.width = `${percentage}%`;
+        barFill.style.backgroundColor = RANKS[gameState.rankIndex].color;
+
+        scoreText.textContent = `${gameState.score} / ${gameState.maxScore}`;
+        rankText.textContent = RANKS[gameState.rankIndex].name;
+        rankText.style.color = RANKS[gameState.rankIndex].color;
+    }
+}
+
+// === ANSWER CHECKING ===
+function checkAnswer(tabId, index, btnElement) {
+    const item = allData[tabId][index];
+    const card = btnElement.closest('.question-card');
+    const input = card.querySelector('.result-input');
+    const userVal = input.value.replace(/\s/g, '').toLowerCase(); // Remove spaces, toLowerCase
+    const correctVal = item.res.replace(/\s/g, '').toLowerCase(); // Remove spaces from result
+
+    // Basic validation - exact string match after cleanup
+    // Enhancements could include parsing, but strict formatting enforces discipline
+    if (userVal === correctVal) {
+        // Correct
+        if (!card.classList.contains('solved')) {
+            updateScore(2);
+            card.classList.add('solved');
+            input.classList.add('correct');
+            input.disabled = true;
+            btnElement.textContent = "Správně!";
+            btnElement.disabled = true;
+
+            // Show confetti or visual cue?
+        }
+    } else {
+        // Incorrect
+        if (!card.classList.contains('solved')) {
+            updateScore(-1);
+            input.classList.add('shake');
+            input.classList.add('incorrect');
+            setTimeout(() => {
+                input.classList.remove('shake');
+                input.classList.remove('incorrect');
+            }, 500);
+        }
+    }
+}
+
 
 // === RENDERING ===
 function renderContent(tabId) {
@@ -1229,7 +1313,8 @@ function renderContent(tabId) {
 
     container.innerHTML = data.map(item => createQuestionCard(item, tabId)).join('');
 
-    // Add click listeners
+    // Add click listeners for the card itself (expanding/animation)
+    // IMPORTANT: specific clicks on inputs/buttons shouldn't trigger card expansion
     container.querySelectorAll('.question-card').forEach((card, index) => {
         card.addEventListener('click', (e) => handleCardClick(tabId, index, e));
     });
@@ -1259,12 +1344,27 @@ function createQuestionCard(item, tabId) {
                     <span class="original-expression" id="original-${cardId}">${item.q}</span>
                 </div>
             </div>
+
+            <div class="interactive-area" onclick="event.stopPropagation()">
+                <textarea class="calc-area" placeholder="Místo pro tvé výpočty..."></textarea>
+                <div class="result-row">
+                    <input type="text" class="result-input" placeholder="Tvůj výsledek (např. 2x+1)">
+                    <button class="check-btn" onclick="checkAnswer('${tabId}', ${item.id - 1}, this)">
+                        Zkontrolovat
+                    </button>
+                </div>
+            </div>
         </div>
     `;
 }
 
 // === CARD INTERACTION ===
 async function handleCardClick(tabId, index, event) {
+    // If clicking calculation area, input, or button, ignore
+    if (event.target.closest('.interactive-area') || event.target.closest('.card-controls')) {
+        return;
+    }
+
     const item = allData[tabId][index];
     const cardId = `${tabId}-${item.id}`;
     const card = event.currentTarget;
@@ -1286,8 +1386,14 @@ async function handleCardClick(tabId, index, event) {
         return;
     }
 
-    // Start new animation
+    // Start new animation (HINT)
     if (!expandedCards.has(cardId)) {
+        // PENALTY Logic:
+        // If the card is not solved yet, showing the animation counts as a hint
+        if (!card.classList.contains('solved')) {
+            updateScore(-1);
+        }
+
         expandedCards.add(cardId);
         card.classList.add('expanded');
         await animateSolution(cardId, item);
@@ -1466,6 +1572,8 @@ window.setAnimationMode = setAnimationMode;
 window.regenerateAll = regenerateAll;
 window.switchTab = switchTab;
 window.handleCardClick = handleCardClick;
+
+window.checkAnswer = checkAnswer;
 
 // === START APP ===
 // When using type="module", the script is deferred. 
