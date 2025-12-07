@@ -1185,13 +1185,11 @@ let allData = {
 let expandedCards = new Set();
 
 // === INITIALIZATION ===
-function initializeApp() {
-    generateAllData();
-    renderContent('cv1');
-}
+
 
 function generateAllData() {
     allData.cv1 = generateEx1(100);
+    console.log('CV1 Items:', allData.cv1.length);
     allData.cv2 = generateEx2(100);
     allData.cv3 = generateEx3(100);
     allData.cv4 = generateEx4(100);
