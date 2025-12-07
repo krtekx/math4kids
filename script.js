@@ -1976,6 +1976,17 @@ function setupKeyboard() {
     document.addEventListener('focusin', (e) => {
         if (e.target.classList.contains('result-input') || e.target.classList.contains('calc-area')) {
             activeInput = e.target;
+
+            // Find the card and question to adapt keyboard
+            const card = e.target.closest('.question-card');
+            if (card) {
+                const questionDiv = card.querySelector('.card-question');
+                if (questionDiv) {
+                    const questionText = questionDiv.textContent || '';
+                    updateKeyboardForQuestion(questionText);
+                }
+            }
+
             keyboard.classList.remove('hidden');
             // Ensure content isn't covered by keyboard (simple padding adjustment)
             document.body.style.paddingBottom = '150px';
@@ -2149,6 +2160,33 @@ const SUPERSCRIPT_MAP = {
 
 function toSuperscript(char) {
     return SUPERSCRIPT_MAP[char] || char; // Return original if no mapping
+}
+
+// Update keyboard to show variables from the current question
+function updateKeyboardForQuestion(questionText) {
+    // Extract all lowercase letters from the question
+    const letters = questionText.match(/[a-z]/g) || [];
+
+    // Get unique letters
+    const uniqueLetters = [...new Set(letters)];
+
+    // Find the first two unique letters (or default to x, y)
+    const var1 = uniqueLetters[0] || 'x';
+    const var2 = uniqueLetters[1] || 'y';
+
+    // Update keyboard buttons
+    const xBtn = document.querySelector('.key-btn[data-key="x"]');
+    const yBtn = document.querySelector('.key-btn[data-key="y"]');
+
+    if (xBtn) {
+        xBtn.textContent = var1;
+        xBtn.dataset.key = var1;
+    }
+
+    if (yBtn) {
+        yBtn.textContent = var2;
+        yBtn.dataset.key = var2;
+    }
 }
 
 
