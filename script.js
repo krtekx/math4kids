@@ -1373,10 +1373,10 @@ function areMultipleConditionsEquivalent(user, correct) {
     return true;
 }
 
-// Evaluate simple numerical expressions (including fractions)
+// Evaluate simple numerical expressions (including fractions and arithmetic)
 function evaluateExpression(expr) {
     try {
-        // Handle fractions like -9/4
+        // Handle simple fractions like -9/4
         if (/^-?\d+\/\d+$/.test(expr)) {
             const parts = expr.split('/');
             return parseFloat(parts[0]) / parseFloat(parts[1]);
@@ -1387,8 +1387,22 @@ function evaluateExpression(expr) {
             return parseFloat(expr);
         }
 
-        // For safety, only evaluate simple arithmetic
-        // Don't use eval for complex expressions
+        // Handle arithmetic expressions with fractions (e.g., 4+5/3, 8/2+10/6)
+        // First, replace all fractions with their decimal values
+        let processed = expr.replace(/(-?\d+)\/(\d+)/g, (match, num, denom) => {
+            return (parseFloat(num) / parseFloat(denom)).toString();
+        });
+
+        // Now evaluate simple arithmetic (only +, -, *, / with numbers)
+        // Security: Only allow numbers, operators, and parentheses
+        if (/^[\d\.\+\-\*\/\(\)\s]+$/.test(processed)) {
+            // Use Function constructor (safer than eval)
+            const result = Function('"use strict"; return (' + processed + ')')();
+            if (typeof result === 'number' && !isNaN(result)) {
+                return result;
+            }
+        }
+
         return null;
     } catch (e) {
         return null;
