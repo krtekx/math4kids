@@ -282,7 +282,7 @@ const generateEx1 = (count) => {
         } else {
             // Typ: x/y - y/x
             const x = getRandomInt(2, 6) * 2; // sudá čísla pro hezčí krácení
-            const y = getRandomInt(2, 6);
+            let y = getRandomInt(2, 6);
 
             // Zajistíme aby x a y nebyly stejné (aby výsledek nebyl 0)
             while (x === y) y++;
